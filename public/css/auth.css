@@ -1,0 +1,640 @@
+/* ── Root Variables — matched to home.css ─────────────── */
+:root {
+    /* Brand colors — identical to home.css */
+    --primary:    #3498db;
+    --primary-dk: #2980b9;
+    --secondary:  #2ecc71;
+    --dark:       #2c3e50;
+    --dark-2:     #1a252f;
+    --light-bg:   #f4f7fa;
+
+    /* Auth-specific aliases (keeps template readable) */
+    --navy:       #2c3e50;       /* was #0a0f1e  → now matches home --dark-color */
+    --navy-mid:   #1b2836;       /* was #0f1a35 */
+    --navy-light: #34495e;       /* was #162040 */
+    --gold:       #3498db;       /* was gold → now home primary blue */
+    --gold-light: #5dade2;       /* lighter blue for hover/shimmer */
+    --gold-pale:  #d6eaf8;       /* pale blue tint */
+    --cream:      #f4f7fa;       /* was warm cream → now home light-bg */
+    --text-muted: #7f8c9a;
+    --border:     rgba(52,152,219,.2);
+    --card-bg:    rgba(255,255,255,.98);
+    --shadow:     0 32px 80px rgba(44,62,80,.35);
+    --radius:     18px;
+    --transition: .35s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    font-family: 'Inter', 'Tajawal', sans-serif;  /* matches home */
+    background: var(--navy);
+    overflow-x: hidden;
+}
+
+/* ── Page Wrapper ─────────────────────────────────────── */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ── Background — same gradient style as hero ─────────── */
+.auth-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(135deg, #2c3e50, #1b2836, #3498db, #2980b9);
+    background-size: 400% 400%;
+    animation: auth-gradient 15s ease infinite;
+    overflow: hidden;
+}
+
+@keyframes auth-gradient {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Radial glow — blue instead of gold */
+.auth-bg::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(52,152,219,.18) 0%, transparent 70%);
+    top: -200px; left: -150px;
+    animation: pulse-slow 8s ease-in-out infinite alternate;
+}
+
+.auth-bg::after {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(46,204,113,.12) 0%, transparent 70%);
+    bottom: -100px; right: -100px;
+    animation: pulse-slow 10s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pulse-slow {
+    from { transform: scale(1) translateY(0);        opacity: .7; }
+    to   { transform: scale(1.15) translateY(-30px); opacity: 1;  }
+}
+
+/* Geometric grid lines */
+.geo-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(52,152,219,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52,152,219,.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Floating diamonds — blue tint */
+.diamond {
+    position: absolute;
+    border: 1px solid rgba(52,152,219,.2);
+    transform: rotate(45deg);
+    animation: float-diamond linear infinite;
+}
+.diamond:nth-child(1) { width:80px;  height:80px;  top:10%;  left:8%;   animation-duration:14s; animation-delay:-2s;  }
+.diamond:nth-child(2) { width:40px;  height:40px;  top:25%;  left:85%;  animation-duration:18s; animation-delay:-5s;  }
+.diamond:nth-child(3) { width:120px; height:120px; top:65%;  left:5%;   animation-duration:22s; animation-delay:-8s;  }
+.diamond:nth-child(4) { width:55px;  height:55px;  top:75%;  left:90%;  animation-duration:16s; animation-delay:-3s;  }
+.diamond:nth-child(5) { width:30px;  height:30px;  top:45%;  left:50%;  animation-duration:20s; animation-delay:-10s; }
+
+@keyframes float-diamond {
+    0%   { transform: rotate(45deg)  translateY(0)    scale(1);   opacity: .3; }
+    50%  { transform: rotate(225deg) translateY(-25px) scale(1.1); opacity: .6; }
+    100% { transform: rotate(405deg) translateY(0)    scale(1);   opacity: .3; }
+}
+
+/* ── Left Panel ───────────────────────────────────────── */
+.auth-left {
+    width: 46%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 4rem;
+    position: relative;
+    z-index: 1;
+    animation: slide-in-left .8s var(--transition) both;
+}
+
+@keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-40px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.brand-area {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+/* Logo — matches home navbar logo style */
+.brand-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 32px rgba(52,152,219,.4);
+    font-size: 2rem;
+    color: #fff;
+    animation: logo-pop .6s cubic-bezier(.34,1.56,.64,1) .4s both;
+}
+
+@keyframes logo-pop {
+    from { opacity: 0; transform: scale(.5); }
+    to   { opacity: 1; transform: scale(1);  }
+}
+
+/* Brand name — Inter bold, matching home logo */
+.brand-name {
+    font-family: 'Inter', 'Tajawal', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.01em;
+    line-height: 1;
+}
+
+.brand-tagline {
+    font-size: .85rem;
+    color: var(--secondary);          /* green accent, matches home highlight */
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-top: .5rem;
+    font-weight: 600;
+}
+
+.left-feature {
+    width: 100%;
+    max-width: 360px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    animation: fade-up .6s var(--transition) both;
+}
+.feature-item:last-child { border-bottom: none; }
+.feature-item:nth-child(1) { animation-delay: .5s; }
+.feature-item:nth-child(2) { animation-delay: .65s; }
+.feature-item:nth-child(3) { animation-delay: .8s; }
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.feature-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: rgba(52,152,219,.2);
+    border: 1px solid rgba(52,152,219,.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary);
+    font-size: 1.1rem;
+}
+
+.feature-text strong {
+    display: block;
+    color: #fff;
+    font-size: .95rem;
+    font-weight: 700;
+    margin-bottom: .15rem;
+}
+.feature-text span {
+    font-size: .82rem;
+    color: rgba(255,255,255,.65);
+    line-height: 1.4;
+}
+
+/* Divider between panels */
+.auth-divider {
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(52,152,219,.25) 30%, rgba(52,152,219,.25) 70%, transparent);
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+/* ── Right Panel ──────────────────────────────────────── */
+.auth-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 3rem;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    animation: card-enter .7s var(--transition) .2s both;
+}
+
+@keyframes card-enter {
+    from { opacity: 0; transform: translateY(30px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+/* Top accent bar — blue-to-green gradient, matches home service card hover */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0;  }
+    100% { background-position: -200% 0; }
+}
+
+/* ── Card Header ──────────────────────────────────────── */
+.card-header-custom {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.card-header-custom .page-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--dark), var(--navy-light));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.1rem;
+    font-size: 1.5rem;
+    color: var(--primary);
+    box-shadow: 0 4px 20px rgba(52,152,219,.2);
+}
+
+.card-header-custom h1 {
+    font-family: 'Inter', 'Tajawal', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--dark);
+    letter-spacing: -.02em;
+    margin-bottom: .4rem;
+}
+
+.card-header-custom p {
+    font-size: .88rem;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+/* ── Form Controls ────────────────────────────────────── */
+.form-group-custom {
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.form-label-custom {
+    display: block;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+}
+
+.input-wrapper { position: relative; }
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: color var(--transition);
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: .8rem 1rem .8rem 2.75rem;
+    font-family: 'Inter', 'Tajawal', sans-serif;
+    font-size: .9rem;
+    color: var(--dark);
+    background: #f8f9fa;
+    border: 1.5px solid #dee2e6;
+    border-radius: 10px;
+    transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+    outline: none;
+}
+
+.form-control-custom:focus {
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(52,152,219,.12);
+}
+
+.input-wrapper:focus-within .input-icon {
+    color: var(--primary);
+}
+
+.form-control-custom.is-invalid {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231,76,60,.1);
+}
+
+.invalid-feedback-custom {
+    font-size: .78rem;
+    color: #e74c3c;
+    margin-top: .35rem;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+/* Toggle password visibility */
+.toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    transition: color var(--transition);
+}
+.toggle-pw:hover { color: var(--primary); }
+
+/* ── Primary Button — matches home btn-hero style ─────── */
+.btn-auth {
+    width: 100%;
+    padding: .88rem 1rem;
+    font-family: 'Inter', 'Tajawal', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+    background: var(--secondary);        /* green, matches home primary CTA */
+    border: none;
+    border-radius: 50px;                 /* matches home btn-hero pill shape */
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    box-shadow: 0 6px 24px rgba(46,204,113,.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-auth::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+    transform: translateX(-100%);
+    transition: transform .5s ease;
+}
+
+.btn-auth:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(46,204,113,.5);
+    background: #27ae60;
+}
+
+.btn-auth:hover::after { transform: translateX(100%); }
+
+.btn-auth:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 16px rgba(46,204,113,.3);
+}
+
+/* ── Links ────────────────────────────────────────────── */
+.auth-link {
+    color: var(--primary);
+    font-size: .85rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition);
+}
+.auth-link:hover { color: var(--primary-dk); text-decoration: underline; }
+
+.auth-link-gold {                        /* name kept for blade compatibility */
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition), opacity var(--transition);
+}
+.auth-link-gold:hover { color: var(--primary-dk); opacity: .85; }
+
+/* ── Divider ──────────────────────────────────────────── */
+.text-divider {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 1.5rem 0;
+    color: #adb5bd;
+    font-size: .8rem;
+    font-weight: 500;
+}
+.text-divider::before, .text-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #dee2e6;
+}
+
+/* ── Alerts ───────────────────────────────────────────── */
+.alert-auth {
+    border-radius: 10px;
+    padding: .85rem 1rem;
+    font-size: .85rem;
+    border: none;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+}
+.alert-auth-success { background: #edfbf3; color: #1a7a4a; }
+.alert-auth-error   { background: #fdf0ef; color: #c0392b; }
+.alert-auth i       { margin-top: .1rem; font-size: 1rem; flex-shrink: 0; }
+
+/* ── Checkbox ─────────────────────────────────────────── */
+.custom-check {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    cursor: pointer;
+    font-size: .85rem;
+    color: #6c757d;
+    user-select: none;
+}
+.custom-check input[type="checkbox"] {
+    width: 17px; height: 17px;
+    border: 1.5px solid #ced4da;
+    border-radius: 4px;
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+    transition: border-color var(--transition), background var(--transition);
+    flex-shrink: 0;
+}
+.custom-check input[type="checkbox"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+.custom-check input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 6px; height: 10px;
+    border: 2px solid #fff;
+    border-top: none; border-left: none;
+    transform: rotate(40deg);
+}
+
+/* ── Footer note ──────────────────────────────────────── */
+.card-footer-note {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: .85rem;
+    color: #adb5bd;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 900px) {
+    .auth-left, .auth-divider { display: none; }
+    .auth-right {
+        width: 100%;
+        padding: 2rem 1.25rem;
+        align-items: flex-start;
+        padding-top: 3rem;
+    }
+    .auth-card { padding: 2.25rem 1.75rem; }
+}
+@media (max-width: 480px) {
+    .auth-card { border-radius: 14px; }
+}
+
+/* ── Stagger children on load ─────────────────────────── */
+.stagger-child { animation: fade-up .5s var(--transition) both; }
+.stagger-child:nth-child(1) { animation-delay: .35s; }
+.stagger-child:nth-child(2) { animation-delay: .45s; }
+.stagger-child:nth-child(3) { animation-delay: .55s; }
+.stagger-child:nth-child(4) { animation-delay: .65s; }
+.stagger-child:nth-child(5) { animation-delay: .75s; }
+.stagger-child:nth-child(6) { animation-delay: .85s; }
+.stagger-child:nth-child(7) { animation-delay: .90s; }
+
+/* ── Select field ─────────────────────────────────────── */
+select.form-control-custom {
+    appearance: auto;
+    padding-right: 2rem;
+    cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════════ */
+/*  LANGUAGE TOGGLE BUTTON                               */
+/* ══════════════════════════════════════════════════════ */
+.auth-lang-btn {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .4rem 1rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(52,152,219,.2);
+    border: 1.5px solid rgba(52,152,219,.45);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+    backdrop-filter: blur(6px);
+}
+.auth-lang-btn:hover {
+    background: rgba(52,152,219,.38);
+    border-color: var(--primary);
+}
+[dir="rtl"] .auth-lang-btn { right: auto; left: 1.25rem; }
+
+/* ══════════════════════════════════════════════════════ */
+/*  RTL / ARABIC OVERRIDES                              */
+/* ══════════════════════════════════════════════════════ */
+[dir="rtl"] body,
+[dir="rtl"] .form-control-custom,
+[dir="rtl"] .btn-auth,
+[dir="rtl"] .form-label-custom,
+[dir="rtl"] .card-header-custom h1,
+[dir="rtl"] .card-header-custom p { font-family: 'Tajawal', sans-serif; }
+
+[dir="rtl"] .brand-name { font-family: 'Tajawal', sans-serif; font-weight: 800; }
+
+[dir="rtl"] .input-icon          { left: auto; right: 14px; }
+[dir="rtl"] .form-control-custom { padding-left: 1rem; padding-right: 2.75rem; }
+[dir="rtl"] .toggle-pw           { right: auto; left: 14px; }
+[dir="rtl"] .input-wrapper:has(.toggle-pw) .form-control-custom {
+    padding-left: 2.75rem;
+    padding-right: 2.75rem;
+}
+
+[dir="rtl"] .form-label-custom,
+[dir="rtl"] .invalid-feedback-custom,
+[dir="rtl"] .card-footer-note,
+[dir="rtl"] .alert-auth           { text-align: right; }
+
+[dir="rtl"] .custom-check         { flex-direction: row-reverse; justify-content: flex-end; }
+[dir="rtl"] .feature-item         { flex-direction: row-reverse; text-align: right; }
+[dir="rtl"] .feature-text strong,
+[dir="rtl"] .feature-text span    { text-align: center; }
+[dir="rtl"] .bi-arrow-left::before { content: "\f138"; }
+
+/* Email RTL fix */
+[dir="rtl"] input[type="email"]              { text-align: right; unicode-bidi: plaintext; }
+[dir="rtl"] input[type="email"]::placeholder { text-align: right; direction: rtl; }
+[dir="rtl"] input[type="email"]::-moz-placeholder { text-align: right; direction: rtl; }
+
+/* Phone input RTL fix — same approach as email */
+[dir="rtl"] input[type="tel"] {
+    text-align: right;
+    unicode-bidi: plaintext;
+}
+
+[dir="rtl"] input[type="tel"]::placeholder {
+    text-align: right;
+    direction: rtl;
+}
+
+[dir="rtl"] input[type="tel"]::-moz-placeholder {
+    text-align: right;
+    direction: rtl;
+}
