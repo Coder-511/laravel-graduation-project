@@ -10,7 +10,7 @@
 
   <title>AJEER - Flexible Jobs Platform in Jordan</title>
 
-  <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" id="bootstrapCSS">
   <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -196,4 +196,72 @@ class JobApplicationController extends Controller
 
         return response()->json($applications);
     }
+
+    // ─── Job Seeker: Apply (web / blade version) ──────────────
+
+    public function applyWeb(Request $request, int $jobId)
+    {
+        $user = Auth::user();
+
+        if ($user->user_type !== 'JobSeeker') {
+            return redirect()->back()->withErrors(['error' => 'Only job seekers can apply.']);
+        }
+
+        $job = Job::findOrFail($jobId);
+
+        if ($job->status !== 'Approved') {
+            return redirect()->back()->withErrors(['error' => 'This job is not available.']);
+        }
+
+        if ($job->owner_id === $user->id) {
+            return redirect()->back()->withErrors(['error' => 'You cannot apply to your own job.']);
+        }
+
+        $alreadyApplied = JobApplication::where('job_id', $jobId)
+            ->where('seeker_id', $user->id)
+            ->exists();
+
+        if ($alreadyApplied) {
+            return redirect()->back()->withErrors(['error' => 'You have already applied to this job.']);
+        }
+
+        $request->validate([
+            'message' => 'nullable|string|max:1000',
+        ]);
+
+        JobApplication::create([
+            'job_id'    => $jobId,
+            'seeker_id' => $user->id,
+            'message'   => $request->message,
+            'status'    => 'Pending',
+        ]);
+
+        Notification::notify(
+            $job->owner_id,
+            'New Application Received',
+            "{$user->name} has applied to your job \"{$job->title}\"."
+        );
+
+        return redirect()->back()->with('success', 'Application submitted successfully! 🎉');
+    }
+
+    // ─── Job Seeker: Cancel (web / blade version) ─────────────
+
+    public function cancelWeb(int $applicationId)
+    {
+        $user        = Auth::user();
+        $application = JobApplication::findOrFail($applicationId);
+
+        if ($application->seeker_id !== $user->id) abort(403);
+
+        if ($application->status !== 'Pending') {
+            return redirect()->back()->withErrors([
+                'error' => 'Only pending applications can be canceled.'
+            ]);
+        }
+
+        $application->update(['status' => 'Canceled']);
+
+        return redirect()->back()->with('success', 'Application canceled.');
+    }
 }

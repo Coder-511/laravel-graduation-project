@@ -14,6 +14,7 @@ use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobOwnerController;
+use App\Http\Controllers\JobSeekerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,35 +45,20 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/reset-password/{token}', function (Request $request, string $token) {
         $email = $request->email;
-
         if (!$email) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Invalid password reset link.',
-            ]);
+            return redirect()->route('login')->withErrors(['email' => 'Invalid password reset link.']);
         }
-
         $record = DB::table('password_reset_tokens')->where('email', $email)->first();
-
         if (!$record || !Hash::check($token, $record->token)) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Invalid or expired password reset link.',
-            ]);
+            return redirect()->route('login')->withErrors(['email' => 'Invalid or expired password reset link.']);
         }
-
         $expireMinutes = config('auth.passwords.users.expire', 60);
-        $isExpired     = \Carbon\Carbon::parse($record->created_at)
-                            ->addMinutes($expireMinutes)
-                            ->isPast();
-
+        $isExpired = \Carbon\Carbon::parse($record->created_at)->addMinutes($expireMinutes)->isPast();
         if ($isExpired) {
             DB::table('password_reset_tokens')->where('email', $email)->delete();
-            return redirect()->route('password.request')->withErrors([
-                'email' => 'This password reset link has expired. Please request a new one.',
-            ]);
+            return redirect()->route('password.request')->withErrors(['email' => 'This link has expired.']);
         }
-
         return view('auth.resetpassword', ['token' => $token, 'email' => $email]);
-
     })->name('password.reset');
 
     Route::post('/register',        [UserController::class, 'register'])      ->name('register.post');
@@ -92,10 +78,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-    // Self profile update — strictly self only
     Route::patch('/profile/{id}', [UserController::class, 'update'])->name('profile.update');
 
-    // Smart dashboard redirect
     Route::get('/dashboard', function () {
         return match (Auth::user()->user_type) {
             'Admin'     => redirect()->route('dashboard.admin'),
@@ -105,7 +89,7 @@ Route::middleware('auth')->group(function () {
         };
     })->name('dashboard');
 
-    // ── Notifications — all authenticated users ───────────────────
+    // ── Notifications — all authenticated users ───────────
     Route::get('/notifications',             [NotificationController::class, 'index'])        ->name('notifications.index');
     Route::get('/notifications/unread',      [NotificationController::class, 'unread'])       ->name('notifications.unread');
     Route::patch('/notifications/read-all',  [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
@@ -117,7 +101,6 @@ Route::middleware('auth')->group(function () {
     | Admin Routes
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('role:Admin')->prefix('admin')->group(function () {
 
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard.admin');
@@ -142,7 +125,6 @@ Route::middleware('auth')->group(function () {
     | Shared Job + Shift Routes — Admin & JobOwner
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('role:Admin,JobOwner')->group(function () {
 
         Route::get('/jobs',         [JobController::class, 'index'])  ->name('jobs.index');
@@ -163,7 +145,6 @@ Route::middleware('auth')->group(function () {
     | JobOwner Routes
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('role:JobOwner')->group(function () {
 
         Route::get('/dashboard/jobowner',         [JobOwnerController::class, 'dashboard'])->name('dashboard.jobowner');
@@ -180,19 +161,25 @@ Route::middleware('auth')->group(function () {
     | JobSeeker Routes
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('role:JobSeeker')->group(function () {
 
-        Route::get('/dashboard/jobseeker', fn() => view('dashboard.jobseeker.dashboard'))->name('dashboard.jobseeker');
+        Route::get('/dashboard/jobseeker',           [JobSeekerController::class, 'dashboard'])          ->name('dashboard.jobseeker');
+        Route::get('/dashboard/jobseeker/onboarding',[JobSeekerController::class, 'onboarding'])         ->name('jobseeker.onboarding');
+        Route::post('/dashboard/jobseeker/onboarding',[JobSeekerController::class, 'completeOnboarding'])->name('jobseeker.onboarding.complete');
+        Route::get('/dashboard/jobseeker/jobs',      [JobSeekerController::class, 'jobs'])               ->name('jobseeker.jobs');
+        Route::get('/dashboard/jobseeker/applications',[JobSeekerController::class, 'applications'])     ->name('jobseeker.applications');
+        Route::get('/dashboard/jobseeker/profile',   [JobSeekerController::class, 'profile'])            ->name('jobseeker.profile');
 
+        // Apply & cancel (web-friendly)
+        Route::post('/jobs/{jobId}/apply-web',          [JobApplicationController::class, 'applyWeb'])  ->name('applications.applyWeb');
+        Route::patch('/applications/{id}/cancel-web',   [JobApplicationController::class, 'cancelWeb']) ->name('applications.cancelWeb');
+
+        // Availability
         Route::post('/availabilities',        [AvailabilityController::class, 'store'])  ->name('availabilities.store');
         Route::delete('/availabilities/{id}', [AvailabilityController::class, 'destroy'])->name('availabilities.destroy');
 
+        // Skills sync
         Route::post('/skills/sync', [SkillController::class, 'syncSeekerSkills'])->name('skills.sync');
-
-        Route::post('/jobs/{jobId}/apply',        [JobApplicationController::class, 'apply'])          ->name('applications.apply');
-        Route::get('/my-applications',            [JobApplicationController::class, 'myApplications']) ->name('applications.mine');
-        Route::patch('/applications/{id}/cancel', [JobApplicationController::class, 'cancel'])         ->name('applications.cancel');
 
     });
 

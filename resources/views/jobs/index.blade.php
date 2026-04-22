@@ -128,7 +128,7 @@
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            @if($job->status === 'Pending')
+                            @if(Auth::user()->isAdmin() && $job->status === 'Pending')
                                 <form method="POST"
                                       action="{{ route('jobs.approve', $job->job_id) }}">
                                     @csrf

@@ -81,7 +81,7 @@
                             <i class="bi bi-check"></i>
                         </button>
                     @endif
-                    <button class="btn-danger-admin" style="padding:.32rem .6rem;font-size:.75rem;background:transparent;border-color:transparent;color:#ccc;"
+                    <button class="btn-danger-admin" style="padding:.32rem .6rem;font-size:.75rem;"
                             onclick="deleteNotif({{ $notif->notification_id }})"
                             title="Delete">
                         <i class="bi bi-trash3"></i>

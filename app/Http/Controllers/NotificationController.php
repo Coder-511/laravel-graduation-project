@@ -16,6 +16,12 @@ class NotificationController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
+        $user = Auth::user();
+
+        if ($user->isJobSeeker()) {
+            return view('notifications.seeker-index', compact('notifications'));
+        }
+
         return view('notifications.index', compact('notifications'));
     }
 

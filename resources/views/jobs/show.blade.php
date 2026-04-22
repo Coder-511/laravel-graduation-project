@@ -12,7 +12,7 @@
         <i class="bi bi-arrow-left"></i> Back to Jobs
     </a>
     <div style="display:flex;gap:.5rem;align-items:center;">
-        @if($job->status === 'Pending')
+        @if(Auth::user()->isAdmin() && $job->status === 'Pending')
             <form method="POST" action="{{ route('jobs.approve', $job->job_id) }}">
                 @csrf
                 <button type="submit" class="btn-success-admin">
@@ -120,11 +120,13 @@
                         {{ $job->shifts->count() }}
                     </span>
                 </h6>
-                <button class="btn-primary-admin"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addShiftModal">
-                    <i class="bi bi-plus-lg"></i> Add Shift
-                </button>
+                @if(Auth::user()->isAdmin() && $job->owner_id === Auth::id() || Auth::user()->isJobOwner() && $job->owner_id === Auth::id())
+                    <button class="btn-primary-admin"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addShiftModal">
+                        <i class="bi bi-plus-lg"></i> Add Shift
+                    </button>
+                @endif
             </div>
 
             @if($job->shifts->isEmpty())
@@ -171,18 +173,20 @@
                                 {{ $leftover > 0 ? $leftover . 'm' : '' }}
                             </td>
                             <td>
-                                <form method="POST"
-                                      action="{{ route('shifts.destroy', [
-                                          'job_id'   => $job->job_id,
-                                          'shift_id' => $shift->shift_id
-                                      ]) }}"
-                                      onsubmit="return confirm('Remove this shift?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn-danger-admin"
-                                            style="padding:.32rem .6rem;font-size:.75rem;">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </form>
+                                @if($job->owner_id === Auth::id())
+                                    <form method="POST"
+                                        action="{{ route('shifts.destroy', [
+                                            'job_id'   => $job->job_id,
+                                            'shift_id' => $shift->shift_id
+                                        ]) }}"
+                                        onsubmit="return confirm('Remove this shift?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-danger-admin"
+                                                style="padding:.32rem .6rem;font-size:.75rem;">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -287,124 +291,128 @@
 </div>
 
 {{-- ─── Add Shift Modal ─────────────────────────────────────── --}}
-<div class="modal fade" id="addShiftModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
-        <div class="modal-content"
-             style="border:none;border-radius:var(--radius);overflow:hidden;">
-            <div class="modal-header"
-                 style="background:var(--dark-2);border:none;padding:1.1rem 1.4rem;">
-                <h5 class="modal-title"
-                    style="color:#fff;font-weight:700;font-size:.95rem;">
-                    <i class="bi bi-clock-fill"
-                       style="color:var(--secondary);margin-right:.4rem;"></i>
-                    Add Shift
-                </h5>
-                <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST"
-                  action="{{ route('shifts.store', ['job_id' => $job->job_id]) }}">
-                @csrf
-                <div class="modal-body" style="padding:1.4rem;">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="form-group-admin">
-                                <label class="form-label-admin">Shift Date *</label>
-                                <input type="date" name="shift_date"
-                                       class="form-control-admin {{ $errors->has('shift_date') ? 'is-invalid' : '' }}"
-                                       value="{{ old('shift_date') }}" required>
-                                @error('shift_date')
-                                    <div class="invalid-feedback-admin">
-                                        <i class="bi bi-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
+@if($job->owner_id === Auth::id())
+    <div class="modal fade" id="addShiftModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+            <div class="modal-content"
+                style="border:none;border-radius:var(--radius);overflow:hidden;">
+                <div class="modal-header"
+                    style="background:var(--dark-2);border:none;padding:1.1rem 1.4rem;">
+                    <h5 class="modal-title"
+                        style="color:#fff;font-weight:700;font-size:.95rem;">
+                        <i class="bi bi-clock-fill"
+                        style="color:var(--secondary);margin-right:.4rem;"></i>
+                        Add Shift
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST"
+                    action="{{ route('shifts.store', ['job_id' => $job->job_id]) }}">
+                    @csrf
+                    <div class="modal-body" style="padding:1.4rem;">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-group-admin">
+                                    <label class="form-label-admin">Shift Date *</label>
+                                    <input type="date" name="shift_date"
+                                        class="form-control-admin {{ $errors->has('shift_date') ? 'is-invalid' : '' }}"
+                                        value="{{ old('shift_date') }}" required>
+                                    @error('shift_date')
+                                        <div class="invalid-feedback-admin">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group-admin">
+                                    <label class="form-label-admin">Start Time *</label>
+                                    <input type="time" name="shift_start"
+                                        class="form-control-admin {{ $errors->has('shift_start') ? 'is-invalid' : '' }}"
+                                        value="{{ old('shift_start') }}" required>
+                                    @error('shift_start')
+                                        <div class="invalid-feedback-admin">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group-admin">
+                                    <label class="form-label-admin">End Time *</label>
+                                    <input type="time" name="shift_end"
+                                        class="form-control-admin {{ $errors->has('shift_end') ? 'is-invalid' : '' }}"
+                                        value="{{ old('shift_end') }}" required>
+                                    @error('shift_end')
+                                        <div class="invalid-feedback-admin">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group-admin">
-                                <label class="form-label-admin">Start Time *</label>
-                                <input type="time" name="shift_start"
-                                       class="form-control-admin {{ $errors->has('shift_start') ? 'is-invalid' : '' }}"
-                                       value="{{ old('shift_start') }}" required>
-                                @error('shift_start')
-                                    <div class="invalid-feedback-admin">
-                                        <i class="bi bi-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group-admin">
-                                <label class="form-label-admin">End Time *</label>
-                                <input type="time" name="shift_end"
-                                       class="form-control-admin {{ $errors->has('shift_end') ? 'is-invalid' : '' }}"
-                                       value="{{ old('shift_end') }}" required>
-                                @error('shift_end')
-                                    <div class="invalid-feedback-admin">
-                                        <i class="bi bi-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
+                 </div>
+                    <div class="modal-footer"
+                        style="border-top:1px solid var(--border-light);
+                                padding:1rem 1.4rem;">
+                        <button type="button" class="btn-ghost"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-primary-admin">
+                            <i class="bi bi-plus-lg"></i> Add Shift
+                        </button>
                     </div>
-                </div>
-                <div class="modal-footer"
-                     style="border-top:1px solid var(--border-light);
-                            padding:1rem 1.4rem;">
-                    <button type="button" class="btn-ghost"
-                            data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-primary-admin">
-                        <i class="bi bi-plus-lg"></i> Add Shift
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+@endif
 
 {{-- ─── Reject Modal ────────────────────────────────────────── --}}
-<div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content"
-             style="border:none;border-radius:var(--radius);overflow:hidden;">
-            <div class="modal-header"
-                 style="background:rgba(231,76,60,.06);
-                        border-bottom:1px solid rgba(231,76,60,.15);
-                        padding:1.1rem 1.4rem;">
-                <h5 class="modal-title"
-                    style="font-weight:700;font-size:.95rem;color:var(--danger);">
-                    <i class="bi bi-x-circle-fill"></i> Reject Job
-                </h5>
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" id="rejectForm" action="">
-                @csrf
-                <div class="modal-body" style="padding:1.4rem;">
-                    <div class="form-group-admin">
-                        <label class="form-label-admin">Rejection Reason *</label>
-                        <textarea name="rejection_reason"
-                                  class="form-control-admin" rows="3"
-                                  placeholder="Explain why this job is being rejected..."
-                                  required maxlength="255"></textarea>
+@if(Auth::user()->isAdmin())
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="border:none;border-radius:var(--radius);overflow:hidden;">
+                <div class="modal-header"
+                    style="background:rgba(231,76,60,.06);
+                            border-bottom:1px solid rgba(231,76,60,.15);
+                            padding:1.1rem 1.4rem;">
+                    <h5 class="modal-title"
+                        style="font-weight:700;font-size:.95rem;color:var(--danger);">
+                        <i class="bi bi-x-circle-fill"></i> Reject Job
+                    </h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" id="rejectForm" action="">
+                    @csrf
+                    <div class="modal-body" style="padding:1.4rem;">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Rejection Reason *</label>
+                            <textarea name="rejection_reason"
+                                    class="form-control-admin" rows="3"
+                                    placeholder="Explain why this job is being rejected..."
+                                    required maxlength="255"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer"
-                     style="border-top:1px solid var(--border-light);
+                    <div class="modal-footer"
+                        style="border-top:1px solid var(--border-light);
                             padding:1rem 1.4rem;">
-                    <button type="button" class="btn-ghost"
-                            data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-danger-admin">
-                        <i class="bi bi-x-lg"></i> Confirm Reject
-                    </button>
-                </div>
-            </form>
+                        <button type="button" class="btn-ghost"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-danger-admin">
+                            <i class="bi bi-x-lg"></i> Confirm Reject
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+@endif
 
 @endsection
 
