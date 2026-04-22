@@ -64,10 +64,10 @@ class JobController extends Controller
 
         $data = $request->validate([
             'title'       => ['required', 'string', 'max:100'],
-            'description' => ['nullable', 'string'],
-            'location'    => ['nullable', 'string', 'max:150'],
-            'salary'      => ['nullable', 'numeric', 'min:0'],
-            'skill_ids'   => ['nullable', 'array'],
+            'description' => ['required', 'string'],
+            'location'    => ['required', 'string', 'max:150'],
+            'salary'      => ['required', 'numeric', 'min:0'],
+            'skill_ids'   => ['required', 'array'],
             'skill_ids.*' => ['integer', 'exists:skills,skill_id'],
         ]);
 
@@ -99,6 +99,8 @@ class JobController extends Controller
             }
         }
 
+        session()->flash('new_job_id', $job->job_id);
+        
         $message = $user->isAdmin()
             ? 'Job posted and approved successfully.'
             : 'Job posted successfully. Awaiting admin approval.';
@@ -121,10 +123,10 @@ class JobController extends Controller
 
         $data = $request->validate([
             'title'       => ['required', 'string', 'max:100'],
-            'description' => ['nullable', 'string'],
-            'location'    => ['nullable', 'string', 'max:150'],
-            'salary'      => ['nullable', 'numeric', 'min:0'],
-            'skill_ids'   => ['nullable', 'array'],
+            'description' => ['required', 'string'],
+            'location'    => ['required', 'string', 'max:150'],
+            'salary'      => ['required', 'numeric', 'min:0'],
+            'skill_ids'   => ['required', 'array'],
             'skill_ids.*' => ['integer', 'exists:skills,skill_id'],
 
             'status' => ['sometimes', 'in:Pending,Approved,Rejected', function ($attr, $value, $fail) use ($user) {

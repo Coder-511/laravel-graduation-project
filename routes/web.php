@@ -13,6 +13,7 @@ use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\JobOwnerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,10 +92,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-    // Self profile update — strictly self only, no admin bypass
+    // Self profile update — strictly self only
     Route::patch('/profile/{id}', [UserController::class, 'update'])->name('profile.update');
 
-    // Smart dashboard redirect based on role
+    // Smart dashboard redirect
     Route::get('/dashboard', function () {
         return match (Auth::user()->user_type) {
             'Admin'     => redirect()->route('dashboard.admin'),
@@ -104,7 +105,7 @@ Route::middleware('auth')->group(function () {
         };
     })->name('dashboard');
 
-    // ── Notifications — all authenticated users ───────────
+    // ── Notifications — all authenticated users ───────────────────
     Route::get('/notifications',             [NotificationController::class, 'index'])        ->name('notifications.index');
     Route::get('/notifications/unread',      [NotificationController::class, 'unread'])       ->name('notifications.unread');
     Route::patch('/notifications/read-all',  [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
@@ -119,8 +120,8 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:Admin')->prefix('admin')->group(function () {
 
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard.admin'); // ← was a closure
-        Route::get('/profile',   [AdminController::class, 'profile'])  ->name('admin.profile');   // ← new
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard.admin');
+        Route::get('/profile',   [AdminController::class, 'profile'])  ->name('admin.profile');
 
         Route::get('/users',         [UserController::class, 'index'])  ->name('users.index');
         Route::get('/users/{id}',    [UserController::class, 'show'])   ->name('users.show');
@@ -133,6 +134,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/jobs/{id}/approve', [JobController::class, 'approve'])->name('jobs.approve');
         Route::post('/jobs/{id}/reject',  [JobController::class, 'reject']) ->name('jobs.reject');
+
     });
 
     /*
@@ -143,11 +145,11 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:Admin,JobOwner')->group(function () {
 
-        Route::get('/jobs',          [JobController::class, 'index'])  ->name('jobs.index');
-        Route::get('/jobs/{id}',     [JobController::class, 'show'])   ->name('jobs.show');
-        Route::post('/jobs',         [JobController::class, 'store'])  ->name('jobs.store');
-        Route::patch('/jobs/{id}',   [JobController::class, 'update']) ->name('jobs.update');
-        Route::delete('/jobs/{id}',  [JobController::class, 'destroy'])->name('jobs.destroy');
+        Route::get('/jobs',         [JobController::class, 'index'])  ->name('jobs.index');
+        Route::get('/jobs/{id}',    [JobController::class, 'show'])   ->name('jobs.show');
+        Route::post('/jobs',        [JobController::class, 'store'])  ->name('jobs.store');
+        Route::patch('/jobs/{id}',  [JobController::class, 'update']) ->name('jobs.update');
+        Route::delete('/jobs/{id}', [JobController::class, 'destroy'])->name('jobs.destroy');
 
         Route::get('/jobs/{job_id}/shifts',               [JobShiftController::class, 'index'])  ->name('shifts.index');
         Route::post('/jobs/{job_id}/shifts',              [JobShiftController::class, 'store'])  ->name('shifts.store');
@@ -164,7 +166,8 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:JobOwner')->group(function () {
 
-        Route::get('/dashboard/jobowner', fn() => view('dashboard.jobowner.dashboard'))->name('dashboard.jobowner');
+        Route::get('/dashboard/jobowner',         [JobOwnerController::class, 'dashboard'])->name('dashboard.jobowner');
+        Route::get('/dashboard/jobowner/profile', [JobOwnerController::class, 'profile'])  ->name('jobowner.profile');
 
         Route::get('/my-jobs/applications',         [JobApplicationController::class, 'ownerIndex'])     ->name('applications.ownerIndex');
         Route::get('/my-jobs/{jobId}/applications', [JobApplicationController::class, 'jobApplications'])->name('applications.jobApplications');

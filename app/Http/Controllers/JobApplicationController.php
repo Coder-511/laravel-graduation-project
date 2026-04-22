@@ -50,7 +50,6 @@ class JobApplicationController extends Controller
             'status'    => 'Pending',
         ]);
 
-        // ── Notify the job owner ──
         Notification::notify(
             $job->owner_id,
             'New Application Received',
@@ -65,31 +64,41 @@ class JobApplicationController extends Controller
 
     // ─── Job Owner: View all applications across their jobs ──────
 
-    public function ownerIndex(Request $request): JsonResponse
+    public function ownerIndex(Request $request)
     {
         $user = Auth::user();
+        if (!$user->isJobOwner()) abort(403);
 
-        if ($user->user_type !== 'JobOwner') {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+        $query = JobApplication::with(['job', 'seeker'])
+            ->whereHas('job', fn($q) => $q->where('owner_id', $user->id));
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
-        $applications = JobApplication::with(['job', 'seeker'])
-            ->whereHas('job', fn($q) => $q->where('owner_id', $user->id))
-            ->latest()
-            ->get();
+        if ($request->filled('job_id')) {
+            $query->where('job_id', $request->job_id);
+        }
 
-        return response()->json($applications);
+        $applications = $query->latest()->get();
+
+        $myJobs = Job::where('owner_id', $user->id)
+                     ->where('status', 'Approved')
+                     ->get();
+
+        return view('applications.owner-index',
+            compact('applications', 'myJobs'));
     }
 
     // ─── Job Owner: View applications for a specific job ─────────
 
-    public function jobApplications(int $jobId): JsonResponse
+    public function jobApplications(int $jobId)
     {
         $user = Auth::user();
         $job  = Job::findOrFail($jobId);
 
-        if ($user->user_type !== 'JobOwner' || $job->owner_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+        if (!$user->isJobOwner() || $job->owner_id !== $user->id) {
+            abort(403);
         }
 
         $applications = JobApplication::with('seeker')
@@ -97,18 +106,20 @@ class JobApplicationController extends Controller
             ->latest()
             ->get();
 
-        return response()->json($applications);
+        return view('applications.owner-index', [
+            'applications' => $applications,
+            'myJobs'       => Job::where('owner_id', $user->id)
+                                 ->where('status', 'Approved')->get(),
+            'filterJob'    => $job,
+        ]);
     }
 
     // ─── Job Owner: Accept or Reject an application ──────────────
 
-    public function updateStatus(Request $request, int $applicationId): JsonResponse
+    public function updateStatus(Request $request, int $applicationId)
     {
         $user = Auth::user();
-
-        if ($user->user_type !== 'JobOwner') {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
+        if (!$user->isJobOwner()) abort(403);
 
         $request->validate([
             'status' => 'required|in:Accepted,Rejected',
@@ -117,16 +128,17 @@ class JobApplicationController extends Controller
         $application = JobApplication::with('job')->findOrFail($applicationId);
 
         if ($application->job->owner_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            abort(403);
         }
 
         if ($application->status !== 'Pending') {
-            return response()->json(['message' => 'This application has already been reviewed.'], 422);
+            return redirect()->back()->withErrors([
+                'error' => 'This application has already been reviewed.'
+            ]);
         }
 
         $application->update(['status' => $request->status]);
 
-        // ── Notify the job seeker ──
         if ($request->status === 'Accepted') {
             Notification::notify(
                 $application->seeker_id,
@@ -141,10 +153,8 @@ class JobApplicationController extends Controller
             );
         }
 
-        return response()->json([
-            'message'     => "Application {$request->status}.",
-            'application' => $application,
-        ]);
+        return redirect()->back()->with('success',
+            "Application {$request->status} successfully.");
     }
 
     // ─── Job Seeker: Cancel their own application ────────────────
@@ -159,7 +169,9 @@ class JobApplicationController extends Controller
         }
 
         if ($application->status !== 'Pending') {
-            return response()->json(['message' => 'Only pending applications can be canceled.'], 422);
+            return response()->json([
+                'message' => 'Only pending applications can be canceled.'
+            ], 422);
         }
 
         $application->update(['status' => 'Canceled']);

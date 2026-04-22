@@ -10,13 +10,13 @@ class NotificationController extends Controller
 {
     // ─── Get all notifications for the authenticated user ────────
 
-    public function index(): JsonResponse
+    public function index(): \Illuminate\Contracts\View\View
     {
         $notifications = Notification::where('user_id', Auth::id())
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(20);
 
-        return response()->json($notifications);
+        return view('notifications.index', compact('notifications'));
     }
 
     // ─── Get only unread notifications ───────────────────────────

@@ -91,7 +91,7 @@
                         <div style="display:flex;gap:.4rem;align-items:center;">
                             <a href="{{ route('users.show', $u->id) }}" class="btn-ghost"
                                title="Inspect">
-                                <i class="bi bi-eye"></i> Inspect
+                                <i class="bi bi-eye"></i>
                             </a>
                             @if($u->id !== Auth::id())
                                 <form method="POST" action="{{ route('users.destroy', $u->id) }}"

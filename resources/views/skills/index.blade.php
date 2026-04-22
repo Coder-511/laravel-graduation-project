@@ -109,7 +109,7 @@
                                           onsubmit="return confirm('Delete \'{{ addslashes($skill->skill_name) }}\'? It will be removed from all jobs and seekers.')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn-danger-admin"
-                                                style="padding:.35rem .6rem;" title="Delete">
+                                            style="padding:.35rem .6rem;" title="Delete">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>

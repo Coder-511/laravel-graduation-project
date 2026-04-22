@@ -40,11 +40,9 @@ class JobShiftController extends Controller {
         $job = $this->authorizeJobOwner($jobId);
 
         $data = $request->validate([
-            'shift_date'  => ['required', 'date'],  // ← no after_or_equal here
+            'shift_date'  => ['required', 'date'],
             'shift_start' => ['required', 'date_format:H:i'],
-            'shift_end'   => ['required', 'date_format:H:i', 'after:shift_start'],
-        ], [
-            'shift_end.after' => 'Shift end time must be after shift start time.',
+            'shift_end'   => ['required', 'date_format:H:i'],
         ]);
 
         $overlap = JobShift::where('job_id', $job->job_id)
